@@ -17,8 +17,8 @@ class Board:
                         self.board[(x_, y_)] += 1
             self.board[(x, y)] = None
 
-    def get2DBoard(self):
-        board2D = []
+    def update2DBoard(self):
+        self.board2D = []
         for y in range(self.height):
             row = []
             for x in range(self.width):
@@ -26,8 +26,7 @@ class Board:
                     row.append(self.board[(x, y)])
                 else:
                     row.append(None)
-            board2D.append(row)
-        return board2D
+            self.board2D.append(row)
 
     def check(self):
         if self.state != 'defeat':
@@ -69,3 +68,5 @@ class Board:
                     uncovered.add((x, y))
                     return uncovered
             return uncovered
+        else:
+            return None
