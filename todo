@@ -1,0 +1,3 @@
+make it faster by removing all the extra calls to get2DBoard
+make it faster by recalculating only the squares near uncovered
+make it so that subsequent digs are as close to each other as possible (looks neat)
