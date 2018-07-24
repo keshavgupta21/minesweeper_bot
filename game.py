@@ -7,7 +7,14 @@ class Board:
         self.height = height
         self.bombs = bombs
         self.state = 'ongoing'
-        bombLocations = sample(list(self.board), bombs)
+        self.new = True
+
+    def placeBombs(self, clicked):
+        covered = []
+        for box in self.board:
+            if box != clicked:
+                covered.append(box)
+        bombLocations = sample(covered, self.bombs)
         for (x, y) in bombLocations:
             for dx in range(-1, 2):
                 for dy in range(-1, 2):
@@ -43,6 +50,9 @@ class Board:
         return self.state
 
     def dig(self, x, y):
+        if self.new:
+            self.placeBombs((x, y))
+            self.new = False
         if self.state == 'ongoing':
             uncovered = set()
             if 0 <= x < self.width and 0 <= y < self.height:

@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 from sdlBased import SDLBoard
 from time import sleep
+from time import time
 
 class MineSweeper:
     def __init__(self, board):
@@ -10,7 +11,6 @@ class MineSweeper:
         self.bombSquares = set()
         self.uncovered = set()
         self.allSquares = {(x, y) for x in range(self.board.width) for y in range(self.board.height)}
-        self.boundary = set()
 
     def getBombNeighbors(self, (x, y)):
         s = set()
@@ -50,7 +50,14 @@ class MineSweeper:
 
     def step(self, maxBorderSize = 15):
         self.board.update2DBoard()
-        for (x, y) in self.uncovered:
+        covered = self.allSquares - self.uncovered - self.bombSquares - self.safeSquares
+        if len(self.uncovered) > len(covered):
+            uncoveredEdge = set()
+            for pos in covered:
+                uncoveredEdge |= self.get8Block(pos) & self.uncovered
+        else:
+            uncoveredEdge = self.uncovered
+        for (x, y) in uncoveredEdge:
             val = self.board.board2D[y][x]
             if val != 0:
                 bombNeighbors = self.getBombNeighbors((x, y))
@@ -67,22 +74,45 @@ class MineSweeper:
                 if uncovered is not None:
                     self.uncovered |= uncovered
             self.safeSquares = set()
-            self.boundary = set()
         else:
-            self.boundary = set()
-            covered = self.allSquares - self.uncovered - self.bombSquares
+            boundary = set()
+            covered = self.allSquares - self.uncovered - self.bombSquares - self.safeSquares
             for pos in self.uncovered:
-                self.boundary |= self.get9Block(pos) & covered
+                boundary |= self.get9Block(pos)
+            boundary &= covered
 
+            boundaryMapping = {cell: {cell} for cell in boundary}
+            changes = True
+            while changes:
+                changes = False
+                for cell in self.uncovered:
+                    neighbors = self.get9Block(cell) & boundary
+                    if neighbors:
+                        piece = set()
+                        for ncell in neighbors:
+                            piece |= boundaryMapping[ncell]
+                        for ncell in neighbors:
+                            if boundaryMapping[ncell] != piece:
+                                changes = True
+                            boundaryMapping[ncell] = piece
+
+            boundaryPieces = []
+            alreadyAdded = set()
+            for pieceSeed in boundaryMapping:
+                if pieceSeed not in alreadyAdded:
+                    piece = boundaryMapping[pieceSeed]
+                    boundaryPieces.append(piece)
+                    alreadyAdded |= piece
 
 if __name__ == "__main__":
-    width = 20
-    height = 20
-    bombs = 40
-    mineSize = 20
+    width = 96
+    height = 54
+    bombs = 700
+    mineSize = 5
     sdlBoard = SDLBoard(width, height, bombs, mineSize)
     minesweeper = MineSweeper(sdlBoard)
     i = 0
+    last = time()
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -93,8 +123,10 @@ if __name__ == "__main__":
         minesweeper.step()
         sdlBoard.check()
         i += 1
-        if i % 1 == 0:
-            sdlBoard.refreshScreen(minesweeper.bombSquares, minesweeper.safeSquares, minesweeper.boundary)
+        if i % 100 == 0:
+            print(time() - last)
+            last = time()
+            sdlBoard.refreshScreen(minesweeper.bombSquares, minesweeper.safeSquares)
         if sdlBoard.state != "ongoing":
             sdlBoard.updateState()
             sleep(1)

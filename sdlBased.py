@@ -1,5 +1,6 @@
 from game import Board
 from time import sleep
+from numpy import random
 import pygame
 from pygame.locals import *
 
@@ -18,13 +19,14 @@ class SDLBoard(Board):
         self.cleanBackground = self.background.copy()
         self.refreshScreen()
 
-    def refreshScreen(self, bombSquares = None, safeSquares = None, boundary = None):
+    def refreshScreen(self, bombSquares = None, safeSquares = None, boundaryPieces = None):
         if bombSquares is None:
             bombSquares = set()
         if safeSquares is None:
             safeSquares = set()
-        if boundary is None:
-            boundary = set()
+        if boundaryPieces is None:
+            boundaryPieces = []
+        colors = list([tuple(random.choice(range(256), size=3)) for _ in range(len(boundaryPieces))])
         self.update2DBoard()
         self.background = self.cleanBackground.copy()
         for y in range(self.height):
@@ -45,11 +47,12 @@ class SDLBoard(Board):
                 else:
                     pygame.draw.rect(self.background, (191, 191, 191), rect)
                 if (x, y) in bombSquares:
-                    pygame.draw.rect(self.background, (255, 0, 0), rect)
+                    pygame.draw.rect(self.background, (0, 0, 0), rect)
                 if (x, y) in safeSquares:
-                    pygame.draw.rect(self.background, (0, 255, 0), rect)
-                if (x, y) in boundary:
-                    pygame.draw.rect(self.background, (0, 0, 255), rect)
+                    pygame.draw.rect(self.background, (255, 255, 255), rect)
+                for i in range(len(boundaryPieces)):
+                    if (x, y) in boundaryPieces[i]:
+                        pygame.draw.rect(self.background, colors[i], rect)
                 pygame.draw.rect(self.background, (63, 63, 63), rect, self.border)
         self.screen.blit(self.background, (0, 0))
         pygame.display.flip()
