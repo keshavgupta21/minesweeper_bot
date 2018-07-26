@@ -169,10 +169,11 @@ class MineSweeper:
                     return
 
 if __name__ == "__main__":
-    width = 30
-    height = 16
-    bombs = 99
+    width = 10
+    height = 10
+    bombs = 10
     mineSize = 30
+    states = {'victory': 0, 'defeat': 0}
     while True:
         sdlBoard = SDLBoard(width, height, bombs, mineSize)
         minesweeper = MineSweeper(sdlBoard)
@@ -182,12 +183,12 @@ if __name__ == "__main__":
             for event in pygame.event.get():
                 if event.type == QUIT:
                     exit()
-            minesweeper.step(clearAllSafe = False)
+            minesweeper.step(clearAllSafe = True)
             sdlBoard.check()
             i += 1
-            if i % 1 == 0:
+            if False and i % 10000 == 0:
                 sdlBoard.refreshScreen(minesweeper.bombSquares, {minesweeper.clickedSquare})
             if sdlBoard.state != "ongoing":
-                sdlBoard.updateState()
-                sleep(0.1)
+                states[sdlBoard.state] += 1
+                print(states)
                 break
